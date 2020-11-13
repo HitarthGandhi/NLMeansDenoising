@@ -65,16 +65,7 @@ def matlab_style_gauss2d(shape=(3, 3), sigma=0.5):
         h /= sumh
     return h
 
-
-name = "Image3.png"
-
-img_path = "sp_noise\{}".format(name)
-gt_path = "gt\{}".format(name)
-
-img = np.array(ImageOps.grayscale(Image.open(img_path)), dtype=float)
-gt = np.array(ImageOps.grayscale(Image.open(gt_path)))
-
-def NL_means(img,h=9,f=4,t=11):
+def NL_means(img,h=8,f=4,t=11):
     # neighbourhood size 2f+1
     N = 2*f + 1
 
@@ -119,3 +110,27 @@ def NL_means(img,h=9,f=4,t=11):
             output[Y, X] = NL/Z
             prog.update(1)
     return output
+
+def main():
+    
+    name = "Image3.png"
+
+    img_path = "sp_noise\{}".format(name)
+    gt_path = "gt\{}".format(name)
+
+    img = np.array(ImageOps.grayscale(Image.open(img_path)), dtype=float)
+    gt = np.array(ImageOps.grayscale(Image.open(gt_path)))
+    
+    nlmeans_img = NL_means(img)
+    
+    _, axs = plt.subplots(1,3,figsize=(20,20))
+    axs[0].imshow(gt,cmap='gray')
+    axs[0].title.set_text('Ground Truth')
+    axs[1].imshow(img,cmap='gray')
+    axs[1].title.set_text('Noisy Image\nMSE={0:.2f}, PSNR={1:.2f}'.format(MSE(gt,img),PSNR(gt,img)))
+    axs[2].imshow(nlmeans_img,cmap='gray')
+    axs[2].title.set_text('Nl Means Denoising\nMSE={0:.2f}, PSNR={1:.2f}'.format(MSE(gt,nlmeans_img),PSNR(gt,nlmeans_img)))
+    plt.show()
+    
+if __name__ == "__main__":
+    main()

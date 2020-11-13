@@ -22,6 +22,15 @@ def matlab_style_gauss2d(shape=(3, 3), sigma=0.5):
 def show_im(img):
     plt.imshow(img, cmap="gray")
     plt.show()
+def MSE(Y, YH):
+    Y = Y.astype(float)
+    YH = YH.astype(float)
+    return np.square(Y - YH).mean()
+
+
+def PSNR(original, noisy, peak=100):
+    mse = np.mean((original-noisy)**2)
+    return 10*np.log10(peak*peak/mse)
 
 
 def get_window(img, x, y, N=25):
@@ -47,10 +56,18 @@ def get_window(img, x, y, N=25):
 
     return window
 
-def gaussian_smooth(noisy_img,sigma = 0.667,kernel = 5):
+def gaussian_smooth(noisy_img,sigma = 2,kernel = 5):
+    """
+    noisy_img = image that is to be gaussian smoothened
+    sigma = sigma for the gaussian kernel
+    kernel = size of kernel (5,5) "Should always be odd"
+    """
     img = np.array(noisy_img,dtype=float)
 
+    # Padding image for boundaries
     pad_img = np.pad(img, kernel)
+
+    # Making gaussian kernel of given size and sigma
     k_window = matlab_style_gauss2d((kernel,kernel),sigma)
 
     new_img = np.zeros(img.shape)
@@ -58,11 +75,11 @@ def gaussian_smooth(noisy_img,sigma = 0.667,kernel = 5):
     h, w = img.shape
     prog = tqdm(total=h*w, position=0, leave=True)
 
+    # Iterating for each pixel
     for Y in range(h):
         for X in range(w):
             x = X + kernel; y = Y + kernel
             window = np.squeeze(get_window(pad_img[:,:,None],x,y,kernel))
-            # print(window.shape)
             weights = window*kernel
             pix = np.sum(weights)/np.sum(kernel)
             new_img[Y,X] = pix
@@ -80,7 +97,16 @@ def main():
     img = np.array(ImageOps.grayscale(Image.open(img_path)), dtype=float)
     gt = np.array(ImageOps.grayscale(Image.open(gt_path))) 
 
-    gaussian_smooth(img)
+    gaussian_img = gaussian_smooth(img)
+
+    _, axs = plt.subplots(1,3,figsize=(20,20))
+    axs[0].imshow(gt,cmap='gray')
+    axs[0].title.set_text('Ground Truth')
+    axs[1].imshow(img,cmap='gray')
+    axs[1].title.set_text('Noisy Image\nMSE={0:.2f}, PSNR={1:.2f}'.format(MSE(gt,img),PSNR(gt,img)))
+    axs[2].imshow(gaussian_img,cmap='gray')
+    axs[2].title.set_text('Nl Means Denoising\nMSE={0:.2f}, PSNR={1:.2f}'.format(MSE(gt,gaussian_img),PSNR(gt,gaussian_img)))
+    plt.show()
 
 if __name__ == "__main__":
     main()
