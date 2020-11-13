@@ -15,14 +15,15 @@ def add_noise(image, noise_type):
 
     if noise_type == "gaussian":
         row, col = image.shape
-        image = image*255
+        image *= 255
         mean = 0
         var = 0.1
         sigma = var**0.5
         gauss = np.random.normal(mean, sigma, (row, col))
         gauss = gauss.reshape(row, col)
         gauss /= np.max(gauss)
-        noisy = image + gauss
+        noisy = image + 5*gauss
+        noisy = noisy/255
         return noisy
 
     elif noise_type == "sp":
@@ -45,7 +46,7 @@ def add_noise(image, noise_type):
         return out
 
 
-def main():
+def create_noise():
     DATA_DIR = "Data"
     GAUSSIAN_DIR = "gaussian"
     SNP_DIR = "sp_noise"
@@ -58,8 +59,8 @@ def main():
     if not os.path.exists(GT_DIR):
         os.mkdir(GT_DIR)
 
-    for _, _, files in tqdm(os.walk(DATA_DIR)):
-        for file in files:
+    for _, _, files in os.walk(DATA_DIR):
+        for file in tqdm(files):
             img = np.array(ImageOps.grayscale(
                 Image.open(os.path.join(DATA_DIR, file))))
             img = img/255
@@ -72,4 +73,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    create_noise()
