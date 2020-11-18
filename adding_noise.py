@@ -22,7 +22,7 @@ def add_noise(image, noise_type):
         gauss = np.random.normal(mean, sigma, (row, col))
         gauss = gauss.reshape(row, col)
         gauss /= np.max(gauss)
-        noisy = image + 5*gauss
+        noisy = image + 10*gauss
         noisy = noisy/255
         return noisy
 
